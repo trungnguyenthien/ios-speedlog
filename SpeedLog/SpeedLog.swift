@@ -14,7 +14,7 @@ class SpeedLog {
         if printedHeader {
             return
         }
-        logFunc("| view | action/type | max_duration | duration | cls | |")
+        logFunc("| view | action/type | max | duration | cls | |")
         logFunc("|---|---|---:|---:|---:|---:|")
         printedHeader = true
     }
@@ -23,7 +23,7 @@ class SpeedLog {
         view: String,
         isAction: Bool,
         name: String,
-        maxDuration: Double? = nil,
+        maxDuration: String? = nil,
         duration: Double? = nil,
         cls: Double? = nil,
         isOK: Bool? = nil
@@ -83,7 +83,7 @@ class SpeedLog {
             view: view,
             isAction: false,
             name: customType,
-            maxDuration: maxDuration,
+            maxDuration: maxDuration == nil ? "---" : "\(maxDuration!)",
             duration: duration,
             isOK: duration <= max
         )
@@ -116,6 +116,7 @@ class SpeedLog {
             view: view,
             isAction: false,
             name: "view_updated",
+            maxDuration: "2/0.5",
             duration: duration,
             cls: cls,
             isOK: duration <= 2 && cls <= 0.5
