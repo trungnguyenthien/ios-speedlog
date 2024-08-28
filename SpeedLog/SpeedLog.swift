@@ -14,8 +14,8 @@ class SpeedLog {
         if printedHeader {
             return
         }
-        logFunc("| view | action/type | duration(s) | cls(s) | |")
-        logFunc("|---|---|---:|---:|---:|")
+        logFunc("| view | action/type | max_duration | duration | cls | |")
+        logFunc("|---|---|---:|---:|---:|---:|")
         printedHeader = true
     }
     
@@ -23,11 +23,18 @@ class SpeedLog {
         view: String,
         isAction: Bool,
         name: String,
+        maxDuration: Double? = nil,
         duration: Double? = nil,
         cls: Double? = nil,
         isOK: Bool? = nil
     ) {
         let nameColumnValue = (isAction ? "⚡️" : "🎯") + name
+        
+        var maxDurationColumnValue = "---"
+        if let maxDuration = maxDuration {
+            maxDurationColumnValue = "\(maxDuration)"
+        }
+        
         var durationColumnValue = "---"
         if let duration = duration {
             durationColumnValue = "\(duration)"
@@ -40,11 +47,11 @@ class SpeedLog {
         if let isOK = isOK {
             alertColumnValue = !isOK ? "❌" : "✅"
         }
-        logFunc("| \(view) | \(nameColumnValue) | \(durationColumnValue) | \(clsColumnValue) | \(alertColumnValue) |")
+        logFunc("| \(view) | \(nameColumnValue) | \(maxDurationColumnValue) | \(durationColumnValue) | \(clsColumnValue) | \(alertColumnValue) |")
     }
     
     private class func printBlankRow() {
-        logFunc("| --- | --- | --- | --- | --- |")
+        logFunc("| --- | --- | --- | --- | --- | --- |")
     }
     
     // Return thời gian từ start đến end, tính bằng giây và lấy 3 số lẻ phần thập phân
@@ -65,41 +72,31 @@ class SpeedLog {
         )
     }
     
-    // Hoàn tất quá trình transition hoặc present một view mới
-    // Việc kết thúc này không đồng thời với việc layout view đã cố định hoặc việc render data đã hoàn tất.
-    class func finishAppear(view: String = "app") {
+    class func finish(view: String = "app", customType: String, maxDuration: Double? = nil) {
         printHeaderIfNeed()
         let duration = calDuration(start: lastActionTime, end: Date())
-        printRow(
-            view: view,
-            isAction: false,
-            name: "view_appeared",
-            duration: duration,
-            isOK: duration <= 1
-        )
-    }
-    
-    class func finishShowIndicator(view: String = "app") {
-        printHeaderIfNeed()
-        let duration = calDuration(start: lastActionTime, end: Date())
-        printRow(
-            view: view,
-            isAction: false,
-            name: "indicator_appeared",
-            duration: duration,
-            isOK: duration <= 0.3
-        )
-    }
-    
-    class func finish(view: String = "app", customType: String) {
-        printHeaderIfNeed()
-        let duration = calDuration(start: lastActionTime, end: Date())
+        var max = 999999999.0
+        if let maxDuration = maxDuration {
+            max = maxDuration
+        }
         printRow(
             view: view,
             isAction: false,
             name: customType,
-            duration: duration
+            maxDuration: maxDuration,
+            duration: duration,
+            isOK: duration <= max
         )
+    }
+    
+    // Hoàn tất quá trình transition hoặc present một view mới
+    // Việc kết thúc này không đồng thời với việc layout view đã cố định hoặc việc render data đã hoàn tất.
+    class func finishAppear(view: String = "app") {
+        finish(view: view, customType: "view_appeared", maxDuration: 1.0)
+    }
+    
+    class func finishShowIndicator(view: String = "app") {
+        finish(view: view, customType: "indicator_appeared", maxDuration: 0.3)
     }
     
     // Hoàn tất việc hiển thị data trên view
